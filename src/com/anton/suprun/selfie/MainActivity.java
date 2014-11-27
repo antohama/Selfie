@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
 	private Intent mNotificationReceiverIntent;
 	private Context mContext;
 	private PendingIntent mNotificationReceiverPendingIntent;
-	private static final long INITIAL_ALARM_DELAY = 2 * 60 * 1000L;
+	private static final long INITIAL_ALARM_DELAY = 30 * 1000L;
 	
 	private int[] mImages = { R.drawable.wolf_01, R.drawable.wolf_02,
 			R.drawable.wolf_03, R.drawable.wolf_04, R.drawable.wolf_05,
@@ -56,19 +56,18 @@ public class MainActivity extends Activity {
 		mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
 		// Create an Intent to broadcast to the AlarmNotificationReceiver
-		mNotificationReceiverIntent = new Intent(mContext,
+		mNotificationReceiverIntent = new Intent(MainActivity.this,
 				AlarmNotificationReceiver.class);
 
 		// Create an PendingIntent that holds the NotificationReceiverIntent
 		mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
-				mContext, 0, mNotificationReceiverIntent, 0);
+				MainActivity.this, 0, mNotificationReceiverIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		// Set inexact repeating alarm
 		mAlarmManager.setInexactRepeating(
 				AlarmManager.ELAPSED_REALTIME,
 				SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
-				60000, //AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-				mNotificationReceiverPendingIntent);
+				INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent);  //AlarmManager.INTERVAL_FIFTEEN_MINUTES,
 		
 		Button btn = (Button) findViewById(R.id.btn_add_image);
 
@@ -138,8 +137,9 @@ public class MainActivity extends Activity {
 	}
 	
 	protected void addImageToList(Bitmap bmp) {
+		ImageAdapter adapter = new ImageAdapter(mContext, mThumbs);
 		mThumbs.add(bmp);
-		listView.setAdapter(new ImageAdapter(getApplicationContext(), mThumbs));
-		listView.invalidate();
+		listView.setAdapter(adapter);
+		adapter.notifyDataSetChanged();
 	}
 }

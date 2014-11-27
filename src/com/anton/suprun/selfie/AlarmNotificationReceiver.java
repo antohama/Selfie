@@ -6,6 +6,9 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.RemoteViews;
 
 public class AlarmNotificationReceiver extends BroadcastReceiver {
 	// Notification ID to allow for future updates
@@ -34,14 +37,19 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 		// The PendingIntent that wraps the underlying Intent
 		mContentIntent = PendingIntent.getActivity(context, 0,
 				mNotificationIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+		
+		RemoteViews notificationView = new RemoteViews(context.getPackageName(), R.layout.notification_view);
 
 		// Build the Notification
 		Notification.Builder notificationBuilder = new Notification.Builder(
-				context).setTicker(tickerText)
-				//.setSmallIcon(android.R.drawable.stat_sys_warning)
+				context).setSmallIcon(R.drawable.icon)
+				.setContent(notificationView);/*setTicker(tickerText)
+				
 				.setAutoCancel(true).setContentTitle(tickerText)
 				.setContentIntent(mContentIntent);
-				//.setSound(soundURI).setVibrate(mVibratePattern);
+				//.setSound(soundURI).setVibrate(mVibratePattern);*/
+		
+//		Button notificationButton = (Button) findViewById
 
 		// Get the NotificationManager
 		NotificationManager mNotificationManager = (NotificationManager) context
@@ -50,6 +58,7 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 		// Pass the Notification to the NotificationManager:
 		mNotificationManager.notify(MY_NOTIFICATION_ID,
 				notificationBuilder.build());
+		Log.d(TAG, "Notification sent");
 
 	}
 }
