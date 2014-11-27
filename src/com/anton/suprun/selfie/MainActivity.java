@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,6 +26,12 @@ import android.widget.ListView;
 
 public class MainActivity extends Activity {
 
+	private AlarmManager mAlarmManager;
+	private Intent mNotificationReceiverIntent;
+	private Context mContext;
+	private PendingIntent mNotificationReceiverPendingIntent;
+	private static final long INITIAL_ALARM_DELAY = 2 * 60 * 1000L;
+	
 	private int[] mImages = { R.drawable.wolf_01, R.drawable.wolf_02,
 			R.drawable.wolf_03, R.drawable.wolf_04, R.drawable.wolf_05,
 			R.drawable.wolf_06, R.drawable.wolf_07, R.drawable.wolf_08,
@@ -34,11 +44,31 @@ public class MainActivity extends Activity {
 	
 	static final int REQUEST_IMAGE_CAPTURE = 1;
 	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		mContext = getApplicationContext();
+		
+		// Get the AlarmManager Service
+		mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+		// Create an Intent to broadcast to the AlarmNotificationReceiver
+		mNotificationReceiverIntent = new Intent(mContext,
+				AlarmNotificationReceiver.class);
+
+		// Create an PendingIntent that holds the NotificationReceiverIntent
+		mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
+				mContext, 0, mNotificationReceiverIntent, 0);
+		
+		// Set inexact repeating alarm
+		mAlarmManager.setInexactRepeating(
+				AlarmManager.ELAPSED_REALTIME,
+				SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
+				60000, //AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+				mNotificationReceiverPendingIntent);
 		
 		Button btn = (Button) findViewById(R.id.btn_add_image);
 
@@ -70,7 +100,7 @@ public class MainActivity extends Activity {
 
 		listView = (ListView) findViewById(R.id.listview);
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
