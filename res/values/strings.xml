@@ -3,8 +3,7 @@
 
     <string name="app_name">Selfie</string>
     <string name="notification_text">Time to selfie!</string>
-    <string name="action_settings">Settings</string>
-    <string name="notification_button_text">Stop alarming</string>
-    <string name="app_image">Image for notification</string>
+    <string name="take_photo">Take photo now!</string>
+    <string name="keep_notifying">Keep reminding me</string>
     
 </resources>

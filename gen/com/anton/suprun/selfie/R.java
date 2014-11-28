@@ -24,49 +24,45 @@ public final class R {
     public static final class drawable {
         public static final int ic_launcher=0x7f020000;
         public static final int icon=0x7f020001;
-        public static final int wolf_01=0x7f020002;
-        public static final int wolf_02=0x7f020003;
-        public static final int wolf_03=0x7f020004;
-        public static final int wolf_04=0x7f020005;
-        public static final int wolf_05=0x7f020006;
-        public static final int wolf_06=0x7f020007;
-        public static final int wolf_07=0x7f020008;
-        public static final int wolf_08=0x7f020009;
-        public static final int wolf_09=0x7f02000a;
-        public static final int wolf_10=0x7f02000b;
-        public static final int wolf_11=0x7f02000c;
-        public static final int wolf_12=0x7f02000d;
-        public static final int wolf_13=0x7f02000e;
-        public static final int wolf_14=0x7f02000f;
-        public static final int wolf_15=0x7f020010;
-        public static final int wolf_16=0x7f020011;
-        public static final int wolf_17=0x7f020012;
-        public static final int wolf_18=0x7f020013;
-        public static final int wolf_19=0x7f020014;
-        public static final int wolf_20=0x7f020015;
-        public static final int wolf_21=0x7f020016;
+        public static final int icon_copy=0x7f020002;
+        public static final int wolf_01=0x7f020003;
+        public static final int wolf_02=0x7f020004;
+        public static final int wolf_03=0x7f020005;
+        public static final int wolf_04=0x7f020006;
+        public static final int wolf_05=0x7f020007;
+        public static final int wolf_06=0x7f020008;
+        public static final int wolf_07=0x7f020009;
+        public static final int wolf_08=0x7f02000a;
+        public static final int wolf_09=0x7f02000b;
+        public static final int wolf_10=0x7f02000c;
+        public static final int wolf_11=0x7f02000d;
+        public static final int wolf_12=0x7f02000e;
+        public static final int wolf_13=0x7f02000f;
+        public static final int wolf_14=0x7f020010;
+        public static final int wolf_15=0x7f020011;
+        public static final int wolf_16=0x7f020012;
+        public static final int wolf_17=0x7f020013;
+        public static final int wolf_18=0x7f020014;
+        public static final int wolf_19=0x7f020015;
+        public static final int wolf_20=0x7f020016;
+        public static final int wolf_21=0x7f020017;
     }
     public static final class id {
-        public static final int action_settings=0x7f080005;
-        public static final int btn_add_image=0x7f080001;
-        public static final int listview=0x7f080000;
-        public static final int notifiation_image=0x7f080002;
-        public static final int notificationButton=0x7f080004;
-        public static final int notificationTextId=0x7f080003;
+        public static final int checkbox_alarm=0x7f080000;
+        public static final int listview=0x7f080001;
+        public static final int take_photo_item=0x7f080002;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
-        public static final int notification_view=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f070000;
     }
     public static final class string {
-        public static final int action_settings=0x7f050002;
-        public static final int app_image=0x7f050004;
         public static final int app_name=0x7f050000;
-        public static final int notification_button_text=0x7f050003;
+        public static final int keep_notifying=0x7f050003;
         public static final int notification_text=0x7f050001;
+        public static final int take_photo=0x7f050002;
     }
     public static final class style {
         /** 

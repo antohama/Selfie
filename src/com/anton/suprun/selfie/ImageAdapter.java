@@ -14,8 +14,8 @@ public class ImageAdapter extends BaseAdapter {
 	
 	private Context mContext;
 	private List<Bitmap> mImageIds;
-	private int WIDTH = 70;
-	private int HEIGHT = 70;
+	private int WIDTH = 120;
+	private int HEIGHT = 120;
 	private int PADDING = 10;
 
 	// Store the list of image IDs
