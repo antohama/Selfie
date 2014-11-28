@@ -42,9 +42,8 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 
 		// Build the Notification
 		Notification.Builder notificationBuilder = new Notification.Builder(
-				context).setSmallIcon(R.drawable.icon)
-				.setContent(notificationView);/*setTicker(tickerText)
-				
+				context).setTicker(tickerText).setSmallIcon(R.drawable.icon)
+				.setContent(notificationView).setContentIntent(mContentIntent);/*
 				.setAutoCancel(true).setContentTitle(tickerText)
 				.setContentIntent(mContentIntent);
 				//.setSound(soundURI).setVibrate(mVibratePattern);*/
