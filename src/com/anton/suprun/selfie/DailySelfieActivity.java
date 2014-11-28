@@ -5,16 +5,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import course.labs.contentproviderlab.PlaceViewAdapter;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.ListActivity;
 import android.app.PendingIntent;
+import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.location.LocationListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -25,8 +33,10 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class DailySelfieActivity extends ListActivity implements
+LoaderCallbacks<Cursor> {
 
 	private AlarmManager mAlarmManager;
 	private Intent mNotificationReceiverIntent;
@@ -34,17 +44,11 @@ public class MainActivity extends Activity {
 	private PendingIntent mNotificationReceiverPendingIntent;
 	private static final long INITIAL_ALARM_DELAY = 30 * 1000L;
 
-	private int[] mImages = { R.drawable.wolf_01, R.drawable.wolf_02,
-			R.drawable.wolf_03, R.drawable.wolf_04, R.drawable.wolf_05,
-			R.drawable.wolf_06, R.drawable.wolf_07, R.drawable.wolf_08,
-			R.drawable.wolf_09, R.drawable.wolf_10, R.drawable.wolf_11,
-			R.drawable.wolf_12 };
-
 	private ArrayList<Bitmap> mThumbs = new ArrayList();
 
-	ListView listView;
-
 	CheckBox checkbox;
+	
+	private SelfieViewAdapter mCursorAdapter;
 
 	static final int REQUEST_IMAGE_CAPTURE = 1;
 	private static final String TAG = "Selfie app";
@@ -52,6 +56,14 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		if (!Environment.getExternalStorageState().equals(
+				Environment.MEDIA_MOUNTED)) {
+			Toast.makeText(getApplicationContext(),
+					"External Storage is not available.", Toast.LENGTH_LONG)
+					.show();
+			finish();
+		}
 		setContentView(R.layout.activity_main);
 
 		checkbox = (CheckBox) findViewById(R.id.checkbox_alarm);
@@ -61,34 +73,19 @@ public class MainActivity extends Activity {
 		mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
 		// Create an Intent to broadcast to the AlarmNotificationReceiver
-		mNotificationReceiverIntent = new Intent(MainActivity.this,
+		mNotificationReceiverIntent = new Intent(DailySelfieActivity.this,
 				AlarmNotificationReceiver.class);
 
 		// Create an PendingIntent that holds the NotificationReceiverIntent
 		mNotificationReceiverPendingIntent = PendingIntent.getBroadcast(
-				MainActivity.this, 0, mNotificationReceiverIntent,
+				DailySelfieActivity.this, 0, mNotificationReceiverIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
-		listView = (ListView) findViewById(R.id.listview);
-	}
+		// Create and set empty PlaceViewAdapter
+		mCursorAdapter = new SelfieViewAdapter(getApplicationContext(), null, 0);
 
-	@Override
-	public void onPause() {
-
-		// Set inexact repeating alarm
-		if (checkbox.isChecked()) {
-			Log.d(TAG, "Alarm has been set");
-			mAlarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
-					SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
-					INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent); // AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-		}
-
-		else {
-			Log.d(TAG, "Alarm has been disabled");
-			mAlarmManager.cancel(mNotificationReceiverPendingIntent);
-		}
-
-		super.onPause();
+		// Initialize the loader
+		getLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -96,6 +93,24 @@ public class MainActivity extends Activity {
 		super.onResume();
 		Log.d(TAG, "Alarm has been disabled");
 		mAlarmManager.cancel(mNotificationReceiverPendingIntent);
+	}
+	
+	@Override
+	public void onPause() {
+		
+		// Set inexact repeating alarm
+		if (checkbox.isChecked()) {
+			Log.d(TAG, "Alarm has been set");
+			mAlarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+					SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
+					INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent); // AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+		}
+		else {
+			Log.d(TAG, "Alarm has been disabled");
+			mAlarmManager.cancel(mNotificationReceiverPendingIntent);
+		}
+		
+		super.onPause();
 	}
 
 	@Override
@@ -136,10 +151,29 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	protected void addImageToList(Bitmap bmp) {
-		ImageAdapter adapter = new ImageAdapter(mContext, mThumbs);
+	protected void addImageToList(SelfieRecord selfie) {
+		SelfieViewAdapter adapter = new SelfieViewAdapter( mContext, mThumbs);
+		mCursorAdapter.add(selfie);
 		mThumbs.add(bmp);
 		listView.setAdapter(adapter);
 		adapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		// TODO Auto-generated method stub
+		
 	}
 }

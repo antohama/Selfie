@@ -31,7 +31,7 @@ public class AlarmNotificationReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 
 		// The Intent to be used when the user clicks on the Notification View
-		mIntent = new Intent(context, MainActivity.class);
+		mIntent = new Intent(context, DailySelfieActivity.class);
 
 		// The PendingIntent that wraps the underlying Intent
 		mNotificationIntent = PendingIntent.getActivity(context, 0, mIntent,
