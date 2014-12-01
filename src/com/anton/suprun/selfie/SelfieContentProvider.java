@@ -21,7 +21,7 @@ public class SelfieContentProvider extends ContentProvider {
 			+ SelfiesContact.TABLE_NAME + " ("
 			+ SelfiesContact._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
 			+ SelfiesContact.PHOTO_PATH + " TEXT NOT NULL, "
-			+ SelfiesContact.THUMB_PATH + " TEXT NOT NULL, "
+			+ SelfiesContact.PHOTO_URI + " TEXT NOT NULL, "
 			+ SelfiesContact.PHOTO_TITLE + " TEXT NOT NULL);";
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {

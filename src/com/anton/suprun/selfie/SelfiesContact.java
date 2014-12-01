@@ -16,7 +16,7 @@ public abstract class SelfiesContact {
 
 	public static final String _ID = "_id";
 	public static final String PHOTO_PATH = "photo";
-	public static final String THUMB_PATH = "thumb";
+	public static final String PHOTO_URI = "uri";
 	public static final String PHOTO_TITLE = "title";
 
 }

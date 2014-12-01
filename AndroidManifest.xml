@@ -9,17 +9,23 @@
         android:targetSdkVersion="18" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    
-    <uses-feature android:name="android.hardware.camera"
-                  android:required="true" />
-    
+
+    <permission android:name="com.anton.suprun.selfie.SELFIE_PERM" >
+    </permission>
+
+    <uses-permission android:name="com.anton.suprun.selfie.SELFIE_PERM" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".DailySelfieActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +33,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".AlarmNotificationReceiver"></receiver>
+
+        <receiver android:name=".AlarmNotificationReceiver" >
+        </receiver>
+
+        <provider
+            android:name=".SelfieContentProvider"
+            android:authorities="com.anton.suprun.selfie"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="com.anton.suprun.selfie.SELFIE_PERM" >
+        </provider>
     </application>
 
 </manifest>

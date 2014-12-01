@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,16 +28,11 @@ import android.widget.TextView;
 public class SelfieViewAdapter extends CursorAdapter {
 
 	private Context mContext;
-	private int WIDTH = 120;
-	private int HEIGHT = 120;
-	private int PADDING = 10;
-
 	private static final String APP_DIR = "DailySelfie/Photos";
 	private ArrayList<SelfieRecord> mSelfieRecords = new ArrayList<SelfieRecord>();
 	private static LayoutInflater sLayoutInflater = null;
 	private String mBitmapStoragePath;
 
-	// Store the list of image IDs
 	public SelfieViewAdapter(Context context, Cursor cursor, int flags) {
 		super(context, cursor, flags);
 
@@ -57,16 +55,32 @@ public class SelfieViewAdapter extends CursorAdapter {
 		}
 	}
 
+	@Override
+	public Cursor swapCursor(Cursor newCursor) {
+
+		// clear the ArrayList list so it contains
+		// the current set of PlaceRecords.
+
+		if (null != newCursor && newCursor.moveToFirst() != false) {
+			mSelfieRecords.clear();
+
+			do {
+				mSelfieRecords.add(getSelfieRecordFromCursor(newCursor));
+			} while (newCursor.moveToNext());
+
+		}
+		return super.swapCursor(newCursor);
+
+	}
+
 	// Returns a new SelfieRecord for the data at the cursor's
 	// current position
 	private SelfieRecord getSelfieRecordFromCursor(Cursor cursor) {
 
-		String photoBitmapPath = cursor.getString(cursor
-				.getColumnIndex(SelfiesContact.PHOTO_PATH));
-		String photoTitle = cursor.getString(cursor
-				.getColumnIndex(SelfiesContact.PHOTO_TITLE));
+		Uri photoBitmapUri = Uri.parse(cursor.getString(cursor
+				.getColumnIndex(SelfiesContact.PHOTO_URI)));
 
-		return new SelfieRecord(photoBitmapPath, photoTitle);
+		return new SelfieRecord(photoBitmapUri);
 
 	}
 
@@ -94,26 +108,34 @@ public class SelfieViewAdapter extends CursorAdapter {
 		TextView title;
 	}
 
-	// TODO !!!!
 	public void add(SelfieRecord listItem) {
 
-		String lastPathSegment = Uri.parse(listItem.getPhotoUrl())
-				.getLastPathSegment();
-		String filePath = mBitmapStoragePath + "/" + lastPathSegment;
+		// String lastPathSegment = Uri.parse(listItem.getPhotoUrl())
+		// .getLastPathSegment();
 
-		if (storeBitmapToFile(listItem.getPhoto(), filePath)) {
+		// Create an image file name
+		String imageFilePath = listItem.getPhotoBitmapPath();
 
-			listItem.setPhotoBitmapPath(filePath);
-			mSelfieRecords.add(listItem);
+		/*
+		 * if (storeBitmapToFile(listItem.getPhoto(), filePath)) {
+		 * 
+		 * listItem.setPhotoBitmapPath(filePath);
+		 */
+		mSelfieRecords.add(listItem);
 
-			ContentValues values = new ContentValues();
+		ContentValues values = new ContentValues();
 
-			// TODO - Insert new record into the ContentProvider
+		// Insert new record into the ContentProvider
+		ContentResolver resolver = mContext.getContentResolver();
 
-			ContentResolver resolver = mContext.getContentResolver();
-			// values.r
+		// values.put(PlaceBadgesContract._ID, mPlaceRecords.size());
+		values.put(SelfiesContact.PHOTO_PATH, listItem.getPhotoBitmapPath());
+		values.put(SelfiesContact.PHOTO_TITLE, listItem.getPhotoTitle());
+		values.put(SelfiesContact.PHOTO_URI, listItem.getPhotoUri().toString());
 
-		}
+		resolver.insert(SelfiesContact.CONTENT_URI, values);
+
+		values.clear();
 
 	}
 
@@ -134,6 +156,31 @@ public class SelfieViewAdapter extends CursorAdapter {
 	 * }
 	 */
 
+	public ArrayList<SelfieRecord> getList() {
+		return mSelfieRecords;
+	}
+
+	public void removeAllViews() {
+		mSelfieRecords.clear();
+
+		// delete all records in the ContentProvider
+		mContext.getContentResolver().delete(SelfiesContact.CONTENT_URI, null,
+				null);
+	}
+
+	@Override
+	public void bindView(View view, Context context, Cursor cursor) {
+		ViewHolder holder = (ViewHolder) view.getTag();
+		holder.photo.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory
+				.decodeFile(cursor.getString(cursor
+						.getColumnIndex(SelfiesContact.PHOTO_PATH))), 100, 100,
+				false));
+
+		holder.title.setText(cursor.getString(cursor
+				.getColumnIndex(SelfiesContact.PHOTO_TITLE)));
+
+	}
+
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
 		View newView;
@@ -146,16 +193,6 @@ public class SelfieViewAdapter extends CursorAdapter {
 		newView.setTag(holder);
 
 		return newView;
-	}
-
-	@Override
-	public void bindView(View view, Context context, Cursor cursor) {
-		ViewHolder holder = (ViewHolder) view.getTag();
-		holder.photo.setImageBitmap(getBitmapFromFile(cursor.getString(cursor
-				.getColumnIndex(SelfiesContact.PHOTO_PATH))));
-		holder.title.setText(cursor.getString(cursor
-				.getColumnIndex(SelfiesContact.PHOTO_TITLE)));
-
 	}
 
 	private Bitmap getBitmapFromFile(String filePath) {

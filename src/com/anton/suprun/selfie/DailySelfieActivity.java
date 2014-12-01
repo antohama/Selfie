@@ -1,26 +1,19 @@
 package com.anton.suprun.selfie;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import course.labs.contentproviderlab.PlaceViewAdapter;
-import android.app.Activity;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import android.app.AlarmManager;
 import android.app.ListActivity;
 import android.app.PendingIntent;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
-import android.content.res.AssetManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
-import android.location.LocationListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -28,26 +21,21 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ListView;
 import android.widget.Toast;
 
 public class DailySelfieActivity extends ListActivity implements
-LoaderCallbacks<Cursor> {
+		LoaderCallbacks<Cursor> {
 
 	private AlarmManager mAlarmManager;
 	private Intent mNotificationReceiverIntent;
 	private Context mContext;
+	private Uri mfileUri = null;
 	private PendingIntent mNotificationReceiverPendingIntent;
 	private static final long INITIAL_ALARM_DELAY = 30 * 1000L;
 
-	private ArrayList<Bitmap> mThumbs = new ArrayList();
-
 	CheckBox checkbox;
-	
+
 	private SelfieViewAdapter mCursorAdapter;
 
 	static final int REQUEST_IMAGE_CAPTURE = 1;
@@ -56,7 +44,7 @@ LoaderCallbacks<Cursor> {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		if (!Environment.getExternalStorageState().equals(
 				Environment.MEDIA_MOUNTED)) {
 			Toast.makeText(getApplicationContext(),
@@ -83,6 +71,7 @@ LoaderCallbacks<Cursor> {
 
 		// Create and set empty PlaceViewAdapter
 		mCursorAdapter = new SelfieViewAdapter(getApplicationContext(), null, 0);
+		setListAdapter(mCursorAdapter);
 
 		// Initialize the loader
 		getLoaderManager().initLoader(0, null, this);
@@ -94,22 +83,21 @@ LoaderCallbacks<Cursor> {
 		Log.d(TAG, "Alarm has been disabled");
 		mAlarmManager.cancel(mNotificationReceiverPendingIntent);
 	}
-	
+
 	@Override
 	public void onPause() {
-		
+
 		// Set inexact repeating alarm
 		if (checkbox.isChecked()) {
 			Log.d(TAG, "Alarm has been set");
 			mAlarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
 					SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
 					INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent); // AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-		}
-		else {
+		} else {
 			Log.d(TAG, "Alarm has been disabled");
 			mAlarmManager.cancel(mNotificationReceiverPendingIntent);
 		}
-		
+
 		super.onPause();
 	}
 
@@ -136,44 +124,81 @@ LoaderCallbacks<Cursor> {
 
 	private void dispatchTakePictureIntent() {
 		Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+		// Ensure that there's a camera activity to handle the intent
 		if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-			startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+			// Create the File where the photo should go
+			File photoFile = null;
+			try {
+				photoFile = createImageFile();
+			} catch (IOException ex) {
+				// Error occurred while creating the File
+
+			}
+			// Continue only if the File was successfully created
+			if (photoFile != null) {
+				mfileUri = Uri.fromFile(photoFile);
+				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mfileUri);
+				startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+
+				setResult(RESULT_OK, takePictureIntent);
+			}
+
+			else {
+				mfileUri = null;
+			}
 		}
+	}
+
+	private File createImageFile() throws IOException {
+		// Create an image file name
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+				.format(new Date());
+		String imageFileName = "JPEG_" + timeStamp + "_";
+		File storageDir = Environment
+				.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+		File image = File.createTempFile(imageFileName, /* prefix */
+				".jpg", /* suffix */
+				storageDir /* directory */
+		);
+
+		// Save a file: path for use with ACTION_VIEW intents
+		// mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+		return image;
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-			Bundle extras = data.getExtras();
-			Bitmap imageBitmap = (Bitmap) extras.get("data");
+			Uri photoUri = null;
+			if (null != data) {
+				Bundle extras = data.getExtras();
+				// Bitmap thumbBitmap = (Bitmap) extras.get("data");
+				photoUri = (Uri) extras.get(MediaStore.EXTRA_OUTPUT);
+			} else {
+				photoUri = mfileUri;
+			}
+			SelfieRecord record = new SelfieRecord(photoUri);
 			// mImageView.setImageBitmap(imageBitmap);
-			addImageToList(imageBitmap);
+			mCursorAdapter.add(record);
 		}
-	}
-
-	protected void addImageToList(SelfieRecord selfie) {
-		SelfieViewAdapter adapter = new SelfieViewAdapter( mContext, mThumbs);
-		mCursorAdapter.add(selfie);
-		mThumbs.add(bmp);
-		listView.setAdapter(adapter);
-		adapter.notifyDataSetChanged();
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		// TODO Auto-generated method stub
-		return null;
+		return new CursorLoader(getApplicationContext(), SelfiesContact.CONTENT_URI, null, null, null, null);
 	}
 
 	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		// TODO Auto-generated method stub
-		
+	public void onLoadFinished(Loader<Cursor> loader, Cursor newCursor) {
+		mCursorAdapter.swapCursor(newCursor);
+
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		// TODO Auto-generated method stub
-		
+		mCursorAdapter.swapCursor(null);
+
+
 	}
 }
