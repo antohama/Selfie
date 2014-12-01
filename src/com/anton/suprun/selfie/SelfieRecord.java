@@ -18,8 +18,8 @@ public class SelfieRecord {
 	public SelfieRecord(Uri photoUri) {
 		mPhotoUri = photoUri;
 		mPhotoBitmapPath = photoUri.getPath();
-		Bitmap mPhotoBitmap = BitmapFactory.decodeFile(mPhotoBitmapPath);
-		Bitmap mThumbBitmap = Bitmap.createScaledBitmap(mPhotoBitmap, 100, 100, false);
+		mPhotoBitmap = BitmapFactory.decodeFile(mPhotoBitmapPath);
+		mThumbBitmap = Bitmap.createScaledBitmap(mPhotoBitmap, 100, 100, false);
 		
 		mPhotoTitle = photoUri.getLastPathSegment();
 	}

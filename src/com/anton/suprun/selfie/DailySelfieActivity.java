@@ -4,11 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.ListActivity;
 import android.app.PendingIntent;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -21,7 +21,9 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ListView;
 import android.widget.Toast;
 
 public class DailySelfieActivity extends ListActivity implements
@@ -29,10 +31,10 @@ public class DailySelfieActivity extends ListActivity implements
 
 	private AlarmManager mAlarmManager;
 	private Intent mNotificationReceiverIntent;
-	private Context mContext;
 	private Uri mfileUri = null;
 	private PendingIntent mNotificationReceiverPendingIntent;
 	private static final long INITIAL_ALARM_DELAY = 30 * 1000L;
+	protected static final String EXTRA_RES_ID = "POS";
 
 	CheckBox checkbox;
 
@@ -55,7 +57,6 @@ public class DailySelfieActivity extends ListActivity implements
 		setContentView(R.layout.activity_main);
 
 		checkbox = (CheckBox) findViewById(R.id.checkbox_alarm);
-		mContext = getApplicationContext();
 
 		// Get the AlarmManager Service
 		mAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -78,6 +79,21 @@ public class DailySelfieActivity extends ListActivity implements
 	}
 
 	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		SelfieRecord item = (SelfieRecord) getListAdapter().getItem(position);
+
+		// Create an Intent to start the FullPhotoActivity
+		Intent intent = new Intent(DailySelfieActivity.this,
+				FullPhotoActivity.class);
+
+		// Add the path of the photo to display as an Intent Extra
+		intent.putExtra(EXTRA_RES_ID, item.getPhotoBitmapPath());
+
+		// Start the FullPhotoActivity
+		startActivity(intent);
+	}
+
+	@Override
 	public void onResume() {
 		super.onResume();
 		Log.d(TAG, "Alarm has been disabled");
@@ -92,7 +108,7 @@ public class DailySelfieActivity extends ListActivity implements
 			Log.d(TAG, "Alarm has been set");
 			mAlarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
 					SystemClock.elapsedRealtime() + INITIAL_ALARM_DELAY,
-					INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent); // AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+					INITIAL_ALARM_DELAY, mNotificationReceiverPendingIntent);
 		} else {
 			Log.d(TAG, "Alarm has been disabled");
 			mAlarmManager.cancel(mNotificationReceiverPendingIntent);
@@ -149,6 +165,7 @@ public class DailySelfieActivity extends ListActivity implements
 		}
 	}
 
+	@SuppressLint("SimpleDateFormat")
 	private File createImageFile() throws IOException {
 		// Create an image file name
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
@@ -156,13 +173,8 @@ public class DailySelfieActivity extends ListActivity implements
 		String imageFileName = "JPEG_" + timeStamp + "_";
 		File storageDir = Environment
 				.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		File image = File.createTempFile(imageFileName, /* prefix */
-				".jpg", /* suffix */
-				storageDir /* directory */
-		);
+		File image = File.createTempFile(imageFileName, ".jpg", storageDir);
 
-		// Save a file: path for use with ACTION_VIEW intents
-		// mCurrentPhotoPath = "file:" + image.getAbsolutePath();
 		return image;
 	}
 
@@ -173,20 +185,19 @@ public class DailySelfieActivity extends ListActivity implements
 			Uri photoUri = null;
 			if (null != data) {
 				Bundle extras = data.getExtras();
-				// Bitmap thumbBitmap = (Bitmap) extras.get("data");
 				photoUri = (Uri) extras.get(MediaStore.EXTRA_OUTPUT);
 			} else {
 				photoUri = mfileUri;
 			}
 			SelfieRecord record = new SelfieRecord(photoUri);
-			// mImageView.setImageBitmap(imageBitmap);
 			mCursorAdapter.add(record);
 		}
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new CursorLoader(getApplicationContext(), SelfiesContact.CONTENT_URI, null, null, null, null);
+		return new CursorLoader(getApplicationContext(),
+				SelfiesContact.CONTENT_URI, null, null, null, null);
 	}
 
 	@Override
@@ -198,7 +209,6 @@ public class DailySelfieActivity extends ListActivity implements
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mCursorAdapter.swapCursor(null);
-
 
 	}
 }

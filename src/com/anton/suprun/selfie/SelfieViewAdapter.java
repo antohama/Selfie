@@ -1,23 +1,13 @@
 package com.anton.suprun.selfie;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
-import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,10 +18,8 @@ import android.widget.TextView;
 public class SelfieViewAdapter extends CursorAdapter {
 
 	private Context mContext;
-	private static final String APP_DIR = "DailySelfie/Photos";
 	private ArrayList<SelfieRecord> mSelfieRecords = new ArrayList<SelfieRecord>();
 	private static LayoutInflater sLayoutInflater = null;
-	private String mBitmapStoragePath;
 
 	public SelfieViewAdapter(Context context, Cursor cursor, int flags) {
 		super(context, cursor, flags);
@@ -39,28 +27,12 @@ public class SelfieViewAdapter extends CursorAdapter {
 		mContext = context;
 		sLayoutInflater = LayoutInflater.from(mContext);
 
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED)) {
-			try {
-				String root = mContext.getExternalFilesDir(null)
-						.getCanonicalPath();
-				if (null != root) {
-					File bitmapStorageDir = new File(root, APP_DIR);
-					bitmapStorageDir.mkdirs();
-					mBitmapStoragePath = bitmapStorageDir.getCanonicalPath();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	@Override
 	public Cursor swapCursor(Cursor newCursor) {
 
-		// clear the ArrayList list so it contains
-		// the current set of PlaceRecords.
-
+		// get SelfieRecords from Cursor.
 		if (null != newCursor && newCursor.moveToFirst() != false) {
 			mSelfieRecords.clear();
 
@@ -73,7 +45,7 @@ public class SelfieViewAdapter extends CursorAdapter {
 
 	}
 
-	// Returns a new SelfieRecord for the data at the cursor's
+	// Return a new SelfieRecord for the data at the cursor's
 	// current position
 	private SelfieRecord getSelfieRecordFromCursor(Cursor cursor) {
 
@@ -110,19 +82,7 @@ public class SelfieViewAdapter extends CursorAdapter {
 
 	public void add(SelfieRecord listItem) {
 
-		// String lastPathSegment = Uri.parse(listItem.getPhotoUrl())
-		// .getLastPathSegment();
-
-		// Create an image file name
-		String imageFilePath = listItem.getPhotoBitmapPath();
-
-		/*
-		 * if (storeBitmapToFile(listItem.getPhoto(), filePath)) {
-		 * 
-		 * listItem.setPhotoBitmapPath(filePath);
-		 */
 		mSelfieRecords.add(listItem);
-
 		ContentValues values = new ContentValues();
 
 		// Insert new record into the ContentProvider
@@ -136,25 +96,7 @@ public class SelfieViewAdapter extends CursorAdapter {
 		resolver.insert(SelfiesContact.CONTENT_URI, values);
 
 		values.clear();
-
 	}
-
-	// Return an ImageView for each item referenced by the Adapter
-	/*
-	 * @Override public View getView(int position, View convertView, ViewGroup
-	 * parent) {
-	 * 
-	 * ImageView imageView = (ImageView) convertView;
-	 * 
-	 * // if convertView's not recycled, initialize some attributes if
-	 * (imageView == null) { imageView = new ImageView(mContext);
-	 * imageView.setLayoutParams(new ListView.LayoutParams(WIDTH, HEIGHT));
-	 * imageView.setPadding(PADDING, PADDING, PADDING, PADDING);
-	 * imageView.setScaleType(ImageView.ScaleType.CENTER_CROP); }
-	 * 
-	 * imageView.setImageBitmap(mSelfieRecords.get(position)); return imageView;
-	 * }
-	 */
 
 	public ArrayList<SelfieRecord> getList() {
 		return mSelfieRecords;
@@ -193,31 +135,5 @@ public class SelfieViewAdapter extends CursorAdapter {
 		newView.setTag(holder);
 
 		return newView;
-	}
-
-	private Bitmap getBitmapFromFile(String filePath) {
-		return BitmapFactory.decodeFile(filePath);
-	}
-
-	private boolean storeBitmapToFile(Bitmap bitmap, String filePath) {
-
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED)) {
-
-			try {
-
-				BufferedOutputStream bos = new BufferedOutputStream(
-						new FileOutputStream(filePath));
-				bitmap.compress(CompressFormat.PNG, 100, bos);
-				bos.flush();
-				bos.close();
-			} catch (FileNotFoundException e) {
-				return false;
-			} catch (IOException e) {
-				return false;
-			}
-			return true;
-		}
-		return false;
 	}
 }
