@@ -148,6 +148,10 @@ public class DailySelfieActivity extends ListActivity implements
 				photoFile = createImageFile();
 			} catch (IOException ex) {
 				// Error occurred while creating the File
+				Toast.makeText(getApplicationContext(),
+						"Error occurred while creating the File",
+						Toast.LENGTH_LONG).show();
+				ex.printStackTrace();
 
 			}
 			// Continue only if the File was successfully created
@@ -160,7 +164,7 @@ public class DailySelfieActivity extends ListActivity implements
 			}
 
 			else {
-				mfileUri = null;
+				Toast.makeText(getApplicationContext(), "Can't save file", Toast.LENGTH_LONG).show();
 			}
 		}
 	}
@@ -171,11 +175,16 @@ public class DailySelfieActivity extends ListActivity implements
 		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
 				.format(new Date());
 		String imageFileName = "JPEG_" + timeStamp + "_";
-		File storageDir = Environment
-				.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+		File storageDir = new File(Environment.getExternalStorageDirectory(), "Selfie");
+		storageDir.mkdir();
+		
+		if (storageDir.canWrite()) {
+			File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+			return image;
+		}
 
-		return image;
+		return null;
+		
 	}
 
 	@Override
@@ -188,6 +197,7 @@ public class DailySelfieActivity extends ListActivity implements
 				photoUri = (Uri) extras.get(MediaStore.EXTRA_OUTPUT);
 			} else {
 				photoUri = mfileUri;
+				mfileUri = null;
 			}
 			SelfieRecord record = new SelfieRecord(photoUri);
 			mCursorAdapter.add(record);
